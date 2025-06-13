@@ -13,5 +13,11 @@
         "sender_email": "sheikhmudassar1942003@gmail.com",
         "app_password": "fwdg ymtu zwzg lywe"
     },
-    "whatsapp_sender": "03059743254"
+    "whatsapp_sender": "+14155238886",
+    "twilio": {
+        "account_sid": "ACcb33680cd74385251c187ef3ae745bdc",
+        "auth_token": "0b786d3fe497bdf23f0d423ef46f7427",
+        "content_sid": "bls",
+        "sandbox_name": "brush-experience"
+    }
 }
