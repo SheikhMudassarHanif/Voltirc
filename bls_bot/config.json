@@ -1,0 +1,17 @@
+{
+    "emails": [
+        "sheikhmudassar1942003@gmail.com"
+    ],
+    "whatsapp_numbers": [
+        "+923059743254"
+    ],
+    "monitor_url": "https://www.wikipedia.org/",
+    "test_mode": true,
+    "test_url": "https://example.com/",
+    "check_interval_sec": 30,
+    "gmail": {
+        "sender_email": "sheikhmudassar1942003@gmail.com",
+        "app_password": "fwdg ymtu zwzg lywe"
+    },
+    "whatsapp_sender": "03059743254"
+}

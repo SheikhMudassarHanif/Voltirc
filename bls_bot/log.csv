@@ -1,0 +1,7 @@
+Timestamp,Status,Notification Sent,Mode,URL,Response Code,Error
+2025-06-14 00:31:50,LIVE,No,Test Mode,https://example.com/,200,N/A
+2025-06-14 00:31:50,LIVE,Yes,Test Mode,https://example.com/,200,N/A
+2025-06-14 00:32:37,LIVE,No,Test Mode,https://example.com/,200,N/A
+2025-06-14 00:33:08,LIVE,No,Test Mode,https://example.com/,200,N/A
+2025-06-14 00:33:39,LIVE,No,Test Mode,https://example.com/,200,N/A
+2025-06-14 00:34:10,LIVE,No,Test Mode,https://example.com/,200,N/A
