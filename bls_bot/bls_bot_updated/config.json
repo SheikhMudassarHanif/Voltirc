@@ -16,8 +16,8 @@
     "whatsapp_sender": "+14155238886",
     "twilio": {
         "account_sid": "ACcb33680cd74385251c187ef3ae745bdc",
-        "auth_token": "0b786d3fe497bdf23f0d423ef46f7427",
-        "content_sid": "bls",
+        "auth_token": "105bb238ff519c37ad48df3373cbc576",
+        "content_sid": "HXb5b62575e6e4ff6129ad7c8efe1f983e",
         "sandbox_name": "brush-experience"
     }
 }
