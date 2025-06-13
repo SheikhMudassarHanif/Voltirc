@@ -579,8 +579,8 @@ else:
                 st.error("Please add a test URL before starting the bot")
             elif not test_mode and not config.get("monitor_url"):
                 st.error("Monitor URL is not configured")
-            elif not config["gmail"].get("sender_email") or not config["gmail"].get("app_password"):
-                st.error("Gmail sender email and app password must be configured")
+            # elif not config["gmail"].get("sender_email") or not config["gmail"].get("app_password"):
+            #     st.error("Gmail sender email and app password must be configured")
             elif not config["emails"] and not config["whatsapp_numbers"]:
                 st.error("At least one email or WhatsApp recipient must be configured")
             else:
