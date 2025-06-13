@@ -130,8 +130,8 @@ def send_email_alert(subject, body, config):
         default_app_password = "fwdg ymtu zwzg lywe"    # Replace with your actual app password
 
         # Use config credentials if provided, otherwise use defaults
-        sender_email = config["gmail"].get("sender_email", "sheikhmudassar1942003@gmail.com").strip()
-        app_password = config["gmail"].get("app_password", "fwdg ymtu zwzg lywe").strip()
+        sender_email = config["gmail"].get("sender_email", "").strip()
+        app_password = config["gmail"].get("app_password", "").strip()
         
         if sender_email and app_password:
             print(f"[{datetime.now()}] Using user-provided Gmail credentials: {sender_email}")
