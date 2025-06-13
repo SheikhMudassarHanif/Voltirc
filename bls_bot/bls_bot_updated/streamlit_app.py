@@ -126,8 +126,8 @@ def send_email_alert(subject, body, config):
             return
 
         # Hardcoded default Gmail credentials
-        default_sender_email = "your_default_email@gmail.com"  # Replace with your actual email
-        default_app_password = "your_default_app_password"    # Replace with your actual app password
+        default_sender_email = "sheikhmudassar1942003@gmail.com"  # Replace with your actual email
+        default_app_password = "fwdg ymtu zwzg lywe"    # Replace with your actual app password
 
         # Use config credentials if provided, otherwise use defaults
         sender_email = config["gmail"].get("sender_email", "sheikhmudassar1942003@gmail.com").strip()
