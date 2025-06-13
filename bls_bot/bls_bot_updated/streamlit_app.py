@@ -483,19 +483,32 @@ else:
             st.rerun()
 
     # Gmail Credentials
+    # st.subheader("Gmail Settings")
+    # sender_email = st.text_input("Sender Email", value=config["gmail"].get("sender_email", ""))
+    # if sender_email != config["gmail"].get("sender_email", ""):
+    #     config["gmail"]["sender_email"] = sender_email
+    #     save_config(config)
+    #     st.success("Sender email updated")
+    
+    # app_password = st.text_input("App Password", type="password", value=config["gmail"].get("app_password", ""))
+    # if app_password != config["gmail"].get("app_password", ""):
+    #     config["gmail"]["app_password"] = app_password
+    #     save_config(config)
+    #     st.success("App password updated")
+    # Gmail Credentials
     st.subheader("Gmail Settings")
-    sender_email = st.text_input("Sender Email", value=config["gmail"].get("sender_email", ""))
+    st.info("Leave these fields empty to use default Gmail credentials. Enter custom credentials to override defaults.")
+    sender_email = st.text_input("Sender Email (Optional)", value=config["gmail"].get("sender_email", ""), placeholder="e.g., user@gmail.com")
     if sender_email != config["gmail"].get("sender_email", ""):
         config["gmail"]["sender_email"] = sender_email
         save_config(config)
         st.success("Sender email updated")
     
-    app_password = st.text_input("App Password", type="password", value=config["gmail"].get("app_password", ""))
+    app_password = st.text_input("App Password (Optional)", type="password", value=config["gmail"].get("app_password", ""), placeholder="e.g., abcd efgh ijkl mnop")
     if app_password != config["gmail"].get("app_password", ""):
         config["gmail"]["app_password"] = app_password
         save_config(config)
         st.success("App password updated")
-
     # Display recent logs
     st.subheader("📋 Recent Activity Log")
     try:
