@@ -1,5 +1,3 @@
-
-
 import streamlit as st
 import json
 import re
@@ -13,9 +11,6 @@ from datetime import datetime
 import pywhatkit as pwk
 import os
 import pandas as pd
-from twilio.rest import Client
-from twilio.base.exceptions import TwilioRestException
-import threading
 
 CONFIG_FILE = "config.json"
 LOG_FILE = "log.csv"
@@ -27,7 +22,6 @@ ADMIN_PASSWORD = "admin123"
 # Thread-safe bot control
 bot_control_event = threading.Event()
 bot_thread = None
-file_lock = threading.Lock()  # Add file lock for thread-safe file operations
 
 # Shared status variable
 current_status = {"live": False, "timestamp": "Never", "mode": "Live"}
@@ -54,12 +48,6 @@ def load_config():
                     config["check_interval_sec"] = 300
                 if "whatsapp_sender" not in config:
                     config["whatsapp_sender"] = ""
-                if "twilio" not in config:
-                    config["twilio"] = {
-                        "account_sid": "",
-                        "auth_token": "",
-                        "content_sid": ""
-                    }
                 return config
     except Exception as e:
         print(f"[{datetime.now()}] Error loading config: {e}")
@@ -72,12 +60,7 @@ def load_config():
         "whatsapp_numbers": [],
         "gmail": {"sender_email": "", "app_password": ""},
         "check_interval_sec": 300,
-        "whatsapp_sender": "",
-        "twilio": {
-            "account_sid": "",
-            "auth_token": "",
-            "content_sid": ""
-        }
+        "whatsapp_sender": ""
     }
 
 def save_config(data):
@@ -99,72 +82,77 @@ def format_phone(number):
 
 def send_email_alert(subject, body, config):
     try:
-        if not config["emails"]:
-            print(f"[{datetime.now()}] ⚠️ No email recipients configured")
-            return
-            
-        if not config["gmail"]["sender_email"] or not config["gmail"]["app_password"]:
-            print(f"[{datetime.now()}] ❌ Gmail credentials not configured")
-            return
-
         msg = MIMEText(body)
         msg["Subject"] = subject
         msg["From"] = config["gmail"]["sender_email"]
         msg["To"] = ", ".join(config["emails"])
-        
-        print(f"[{datetime.now()}] 📧 Attempting to send email to: {config['emails']}")
-        
         with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
             server.login(config["gmail"]["sender_email"], config["gmail"]["app_password"])
             server.sendmail(config["gmail"]["sender_email"], config["emails"], msg.as_string())
-            print(f"[{datetime.now()}] ✅ Email sent successfully to: {config['emails']}")
+        print(f"[{datetime.now()}] ✅ Email sent to: {config['emails']}")
     except Exception as e:
-        print(f"[{datetime.now()}] ❌ Email failed: {str(e)}")
+        print(f"[{datetime.now()}] ❌ Email failed: {e}")
 
 def send_whatsapp_alert(message, config):
-    try:
-        if not config["whatsapp_numbers"]:
-            print(f"[{datetime.now()}] ⚠️ No WhatsApp recipients configured")
-            return
-            
-        account_sid = 'ACcb33680cd74385251c187ef3ae745bdc'
-        auth_token = '0b786d3fe497bdf23f0d423ef46f7427'
-        from_number = '+14155238886'
+    for number in config.get("whatsapp_numbers", []):
+        formatted = format_phone(number)
+        if formatted:
+            try:
+                pwk.sendwhatmsg_instantly(formatted, message, wait_time=10, tab_close=True)
+                print(f"[{datetime.now()}] ✅ WhatsApp sent to: {formatted}")
+            except Exception as e:
+                print(f"[{datetime.now()}] ❌ WhatsApp failed to {formatted}: {e}")
 
-        print(f"[{datetime.now()}] 📱 Attempting to send WhatsApp messages to: {config['whatsapp_numbers']}")
-        
-        client = Client(account_sid, auth_token)
-        for number in config.get("whatsapp_numbers", []):
-            formatted = format_phone(number)
-            if formatted:
-                try:
-                    message_obj = client.messages.create(
-                        from_=f"whatsapp:{from_number}",
-                        body=message,
-                        to=f"whatsapp:{formatted}"
-                    )
-                    print(f"[{datetime.now()}] ✅ WhatsApp sent to: {formatted}, SID: {message_obj.sid}")
-                except TwilioRestException as e:
-                    print(f"[{datetime.now()}] ❌ WhatsApp failed to {formatted}: {str(e)}")
-    except Exception as e:
-        print(f"[{datetime.now()}] ❌ WhatsApp alert error: {str(e)}")
+# def ensure_log_header():
+#     """Ensure log file exists with proper headers"""
+#     headers = ['Timestamp', 'Status', 'Notification Sent', 'Mode', 'URL', 'Response Code', 'Error']
+#     try:
+#         if not os.path.exists(LOG_FILE):
+#             with open(LOG_FILE, "w", newline='') as f:
+#                 writer = csv.writer(f)
+#                 writer.writerow(headers)
+#         else:
+#             with open(LOG_FILE, "r", newline='') as f:
+#                 reader = csv.reader(f)
+#                 first_row = next(reader, None)
+#                 if not first_row or first_row != headers:
+#                     if os.path.getsize(LOG_FILE) > 0:
+#                         backup_file = f"{LOG_FILE}.backup"
+#                         os.rename(LOG_FILE, backup_file)
+#                     with open(LOG_FILE, "w", newline='') as f:
+#                         writer = csv.writer(f)
+#                         writer.writerow(headers)
+#     except Exception as e:
+#         print(f"[{datetime.now()}] ❌ Error ensuring log header: {e}")
 
 def ensure_log_header():
+    headers = ['Timestamp', 'Status', 'Notification Sent', 'Mode', 'URL', 'Response Code', 'Error']
     try:
-        if not os.path.exists(LOG_FILE) or os.stat(LOG_FILE).st_size == 0:
-            with open(LOG_FILE, "w", newline="") as csvfile:
-                writer = csv.writer(csvfile)
-                writer.writerow(["Timestamp", "Status", "Notification Sent", "Mode", "URL", "Response Code", "Error"])
-            print("[✔] Log file initialized with header.")
+        if not os.path.exists(LOG_FILE):
+            with open(LOG_FILE, "w", newline='') as f:
+                writer = csv.writer(f)
+                writer.writerow(headers)
+        else:
+            with open(LOG_FILE, "r", newline='') as f:
+                reader = csv.reader(f)
+                first_row = next(reader, None)
+                if not first_row or first_row != headers:
+                    if os.path.getsize(LOG_FILE) > 0:
+                        backup_file = f"{LOG_FILE}.backup"
+                        os.rename(LOG_FILE, backup_file)
+                    with open(LOG_FILE, "w", newline='') as f:
+                        writer = csv.writer(f)
+                        writer.writerow(headers)
     except Exception as e:
-        print(f"[✘] Error ensuring log header: {e}")
+        print(f"[{datetime.now()}] ❌ Error ensuring log header: {e}")
+
 
 def log_status(timestamp, status, sent, mode, url, response_code=None, error=None):
     """Log status with all required fields"""
     ensure_log_header()
     try:
-        with open(LOG_FILE, mode='a', newline='') as f:
-            writer = csv.writer(f)
+        with open(LOG_FILE, mode='a', newline='') as file:
+            writer = csv.writer(file)
             row = [
                 timestamp,
                 status,
@@ -175,7 +163,7 @@ def log_status(timestamp, status, sent, mode, url, response_code=None, error=Non
                 str(error or "N/A")
             ]
             writer.writerow(row)
-            f.flush()
+            file.flush()
             print(f"[{timestamp}] Logged: {status} - {url} - Code: {response_code if response_code is not None else 'N/A'}")
     except Exception as e:
         print(f"[{datetime.now()}] ❌ Failed to write to log: {e}")
@@ -227,12 +215,8 @@ def run_bot():
                 if TEST_MODE:
                     subject = "[TEST MODE] " + subject
                 body = f"The website at {URL} is now accessible.\nTime: {now}\nStatus Code: {status_code}"
-                
-                # Send notifications
-                print(f"[{datetime.now()}] 🔔 Website is LIVE! Sending notifications...")
                 send_email_alert(subject, body, config)
                 send_whatsapp_alert(body, config)
-                
                 log_status(
                     timestamp=now,
                     status="LIVE",
@@ -248,15 +232,17 @@ def run_bot():
             
             time.sleep(INTERVAL)
         except Exception as e:
-            print(f"[{datetime.now()}] ❌ Error in monitor loop: {str(e)}")
+            print(f"[{datetime.now()}] ❌ Error in monitor loop: {e}")
             time.sleep(INTERVAL)
 
 # --- Streamlit UI ---
 
-# Initialize session state
-st.session_state.setdefault("authenticated", False)
-st.session_state.setdefault("bot_status", "Stopped")
-st.session_state.setdefault("config_saved", False)
+if "authenticated" not in st.session_state:
+    st.session_state.authenticated = False
+if "bot_status" not in st.session_state:
+    st.session_state.bot_status = "Stopped"
+if "config_saved" not in st.session_state:
+    st.session_state.config_saved = False
 
 if not st.session_state.authenticated:
     st.title("🔐 BLS Monitor Admin Panel")
@@ -338,24 +324,11 @@ else:
                 save_config(config)
                 st.success("Test URL updated")
 
-    # WhatsApp Configuration
-    st.subheader("WhatsApp Configuration")
+    # WhatsApp Numbers
+    st.subheader("WhatsApp Numbers")
     
-    st.markdown("**Twilio Credentials**")
-    twilio_sid = st.text_input("Twilio Account SID", value=config["twilio"].get("account_sid", ""))
-    twilio_token = st.text_input("Twilio Auth Token", type="password", value=config["twilio"].get("auth_token", ""))
-    twilio_content = st.text_input("Twilio Content SID", value=config["twilio"].get("content_sid", ""))
-    if st.button("Update Twilio Credentials"):
-        config["twilio"] = {
-            "account_sid": twilio_sid,
-            "auth_token": twilio_token,
-            "content_sid": twilio_content
-        }
-        save_config(config)
-        st.success("Twilio credentials updated")
-
     st.markdown("**Sender Number**")
-    sender_number = st.text_input("WhatsApp Sender Number (e.g., +14155238886)", value=config.get("whatsapp_sender", ""), disabled=True)
+    sender_number = st.text_input("WhatsApp Sender Number (e.g., 0300xxxxxxx or +92...)", value=config.get("whatsapp_sender", ""))
     if st.button("Update Sender Number"):
         formatted_sender = format_phone(sender_number)
         if formatted_sender:
@@ -378,7 +351,7 @@ else:
         else:
             st.warning("Number already exists")
     for i, number in enumerate(config["whatsapp_numbers"]):
-        col1, col2 = st.columns([5, 1])
+        col1, col2 = st.columns([5,1])
         col1.write(number)
         if col2.button("❌", key=f"del_num_{i}"):
             config["whatsapp_numbers"].pop(i)
