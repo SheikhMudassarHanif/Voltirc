@@ -95,7 +95,7 @@ def format_phone(number):
         return number
     return None
 
-def send_email_alert(subject, body, config):
+# def send_email_alert(subject, body, config):
     try:
         if not config["emails"]:
             print(f"[{datetime.now()}] ⚠️ No email recipients configured")
@@ -119,6 +119,48 @@ def send_email_alert(subject, body, config):
     except Exception as e:
         print(f"[{datetime.now()}] ❌ Email failed: {str(e)}")
 
+def send_email_alert(subject, body, config):
+    try:
+        if not config["emails"]:
+            print(f"[{datetime.now()}] ⚠️ No email recipients configured")
+            return
+
+        # Hardcoded default Gmail credentials
+        default_sender_email = "your_default_email@gmail.com"  # Replace with your actual email
+        default_app_password = "your_default_app_password"    # Replace with your actual app password
+
+        # Use config credentials if provided, otherwise use defaults
+        sender_email = config["gmail"].get("sender_email", "sheikhmudassar1942003@gmail.com").strip()
+        app_password = config["gmail"].get("app_password", "fwdg ymtu zwzg lywe").strip()
+        
+        if sender_email and app_password:
+            print(f"[{datetime.now()}] Using user-provided Gmail credentials: {sender_email}")
+        else:
+            sender_email = default_sender_email
+            app_password = default_app_password
+            print(f"[{datetime.now()}] Using default Gmail credentials: {sender_email}")
+
+        if not sender_email or not app_password:
+            print(f"[{datetime.now()}] ❌ Gmail credentials not configured")
+            return
+
+        msg = MIMEText(body)
+        msg["Subject"] = subject
+        msg["From"] = sender_email
+        msg["To"] = ", ".join(config["emails"])
+        
+        print(f"[{datetime.now()}] 📧 Attempting to send email to: {config['emails']}")
+        
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+            server.login(sender_email, app_password)
+            server.sendmail(sender_email, config["emails"], msg.as_string())
+            print(f"[{datetime.now()}] ✅ Email sent successfully to: {config['emails']}")
+    except Exception as e:
+        print(f"[{datetime.now()}] ❌ Email failed: {str(e)}")
+
+
+
+
 def send_whatsapp_alert(message, config):
     try:
         if not config["whatsapp_numbers"]:
@@ -128,7 +170,8 @@ def send_whatsapp_alert(message, config):
         account_sid = 'ACcb33680cd74385251c187ef3ae745bdc'
         auth_token = '105bb238ff519c37ad48df3373cbc576'
         from_number = '+14155238886'
-        content_sid = config["twilio"].get("content_sid", "")
+        content_sid = config["twilio"].get("content_sid", "HXb5b62575e6e4ff6129ad7c8efe1f983e")
+        sandbox_name= "brush-experience"
 
         print(f"[{datetime.now()}] 📱 Attempting to send WhatsApp messages to: {config['whatsapp_numbers']} with content SID: {content_sid if content_sid else 'None'}")
         
