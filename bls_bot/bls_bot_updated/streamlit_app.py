@@ -432,7 +432,7 @@ else:
         st.success("Twilio credentials updated")
 
     st.markdown("**Sender Number**")
-    sender_number = st.text_input("WhatsApp Sender Number (e.g., +14155238886)", value=config.get("whatsapp_sender", ""), disabled=True)
+    sender_number = st.text_input("WhatsApp Sender Number (e.g., +14155238886)", value=config.get("whatsapp_sender", ""))
     if st.button("Update Sender Number"):
         formatted_sender = format_phone(sender_number)
         if formatted_sender:
